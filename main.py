@@ -1,24 +1,18 @@
 from typing import Union
-import os
 import pathlib
+import scrapping.utils as utils
 
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
-
+from fastapi.responses import HTMLResponse, FileResponse
 from bson import ObjectId
-import motor.motor_asyncio
-from pymongo import ReturnDocument
 
 from models import *
-import utils
+from db import page_collection, static_collection
 
 app = FastAPI(
     title="Web Pages Saver API",
     summary="A sample application showing how to use FastAPI to add a ReST API to a MongoDB collection.",
 )
-client = motor.motor_asyncio.AsyncIOMotorClient(os.environ["MONGODB_URL"])
-db = client.page_vault
-page_collection = db.get_collection("pages")
 
 
 @app.post(
@@ -34,9 +28,10 @@ async def create_page(page: Page = Body(...)):
 
     A unique `id` will be created and provided in the response.
     """
-    raw_page = {
-        k: v for k, v in page.model_dump(by_alias=True).items() if v is not None
-    }
+
+    # TODO: if provided ONLY a URL, fetch/scrap the page and save it.
+    # TODO: if provided a body - save it as is, fetch statics and save them as well.
+
 
     if page.save_time is None:
         page.save_time = datetime.datetime.now().astimezone()
@@ -79,7 +74,6 @@ async def list_pages():
     "/pages/{page_id}",
     response_description="Get body of saved page",
     response_class=HTMLResponse,
-    # response_model_by_alias=False,
 )
 async def get_saved_page(page_id):
     """
@@ -88,31 +82,15 @@ async def get_saved_page(page_id):
     page = await page_collection.find_one({"_id": ObjectId(page_id)})
     return page['body']
 
-@app.get("/items/", response_class=HTMLResponse)
-async def read_items():
-    return """
-    <html>
-        <head>
-            <title>Some HTML in here</title>
-        </head>
-        <body>
-            <h1>Look ma! HTML!</h1>
-        </body>
-    </html>
+
+@app.get(
+    "/pages/statics/{static_id}",
+    response_description="Get static file",
+    response_class=FileResponse,
+)
+async def get_saved_static_file(static_id):
     """
-
-# import os
-# from fastapi import FastAPI
-# from bson import ObjectId
-# import motor.motor_asyncio
-# from pymongo import ReturnDocument
-# app = FastAPI()
-
-# client = motor.motor_asyncio.AsyncIOMotorClient(os.environ["MONGODB_URL"])
-# db = client.page_vault
-# page_collection = db.get_collection("pages")
-
-
-# @app.get("/")
-# async def root():
-#     return {"message": "Hello World"}
+    Returns saved static file from database.
+    """
+    static = await static_collection.find_one({"_id": ObjectId(static_id)})
+    return static['file']

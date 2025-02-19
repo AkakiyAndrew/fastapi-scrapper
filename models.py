@@ -22,7 +22,6 @@ class Page(BaseModel):
     url: str = Field(...)
     save_time: Optional[NaiveDatetime] = None
     body: Optional[str] = None
-    statics: Optional[list] = None
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -33,7 +32,6 @@ class Page(BaseModel):
                 "url": "https://example.com/home",
                 "save_time": "2032-04-23T10:20:30.400",
                 "body": "<!DOCTYPE html><html><head></head><body>Hello, World!</body></html>",
-                "statics": [],
             }
         },
     )
@@ -44,5 +42,4 @@ class PageCollection(BaseModel):
     A container holding a list of `Page` ID's, without content.
 
     """
-    
     pages: List[Page]
