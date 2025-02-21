@@ -8,7 +8,9 @@ from selenium.webdriver.chrome.service import Service
 
 from chromedriver import check_driver
 
-from . import HEADLESS_HEADERS
+HEADLESS_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
+}
 
 def get_driver():
     # options for headless scrapping, so that services wouldn't block the request
@@ -38,7 +40,7 @@ class ChromeScrapper:
     # queue = Queue()
 
     def __init__(self):
-        self.driver = chromedriver.get_driver()
+        self.driver = get_driver()
 
     def get_body(self, url) -> str:
         self.driver.get(url)

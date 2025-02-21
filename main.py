@@ -1,9 +1,11 @@
+import io
 from typing import Union
 import pathlib
 import scrapping.utils as utils
+import scrapping.scrapping as scrapping
 
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, StreamingResponse
 from bson import ObjectId
 
 from models import *
@@ -36,21 +38,18 @@ async def create_page(page: Page = Body(...)):
     if page.save_time is None:
         page.save_time = datetime.datetime.now().astimezone()
 
-    if page.body is None:
-        presumptive_path = pathlib.Path(__file__).parent / "pages_example" / utils.get_domain(page.url)
-        if presumptive_path.exists():
-            with open(presumptive_path, mode="r", encoding="utf-8") as f:
-                page.body = f.read()
-        else:
-            page.body = "<!DOCTYPE html><html><head></head><body>Hello, World!</body></html>"
+    # if not page.body and page.url:
+    #     presumptive_path = pathlib.Path(__file__).parent / "pages_example" / utils.get_domain(page.url)
+    #     if presumptive_path.exists():
+    #         with open(presumptive_path, mode="r", encoding="utf-8") as f:
+    #             page.body = f.read()
+    #     else:
+    #         page.body = "<!DOCTYPE html><html><head></head><body>Hello, World!</body></html>"
+    #     page.url = None
 
-    new_page = await page_collection.insert_one(
-        page.model_dump(by_alias=True, exclude=["id"])
-    )
-    created_page = await page_collection.find_one(
-        {"_id": new_page.inserted_id}
-    )
-    return created_page
+    created_page_id = await scrapping.scrape_page(page.url, page.body)
+    
+    return await page_collection.find_one({"_id": created_page_id})
 
 
 @app.get(
@@ -84,13 +83,17 @@ async def get_saved_page(page_id):
 
 
 @app.get(
-    "/pages/statics/{static_id}",
+    "/statics/{static_id}",
     response_description="Get static file",
-    response_class=FileResponse,
+    # response_class=FileResponse,
 )
 async def get_saved_static_file(static_id):
     """
     Returns saved static file from database.
     """
     static = await static_collection.find_one({"_id": ObjectId(static_id)})
-    return static['file']
+    # return static['file']
+    if not static:
+        return {"error": "Not found"}
+
+    return StreamingResponse(content=io.BytesIO(static['file']), media_type=static["media_type"])

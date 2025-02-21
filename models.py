@@ -20,8 +20,8 @@ class Page(BaseModel):
 
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     url: str = Field(...)
-    save_time: Optional[NaiveDatetime] = None
     body: Optional[str] = None
+    save_time: Optional[NaiveDatetime] = None
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -30,8 +30,8 @@ class Page(BaseModel):
         json_schema_extra={
             "example": {
                 "url": "https://example.com/home",
-                "save_time": "2032-04-23T10:20:30.400",
                 "body": "<!DOCTYPE html><html><head></head><body>Hello, World!</body></html>",
+                "save_time": "2032-04-23T10:20:30.400",
             }
         },
     )
