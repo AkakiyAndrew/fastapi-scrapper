@@ -23,7 +23,7 @@ def get_resource_type(url):
     else:
         return "other"
 
-def get_domain(url):
+def get_url_domain(url):
     parsed_url = urlparse(url)
     return parsed_url.netloc
 

@@ -5,6 +5,7 @@ import os
 import sys
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
+import asyncio
 
 from chromedriver import check_driver
 
@@ -34,66 +35,32 @@ def get_driver():
     return driver
 
 # Selenium-based scrapper, to be used for scrapping pages
-# TODO: async queue for urls?
-# TODO: make as singleton, and/or with limited time of driver life after last usage
 class ChromeScrapper:
-    # queue = Queue()
+    def __init__(self, timeout=30):
+        self.driver = None
+        self.timeout = timeout
+        self.timer = None
+        self.lock = asyncio.Lock()
 
-    def __init__(self):
-        self.driver = get_driver()
+    async def start_driver(self):
+        # async with self.lock:
+        if self.driver is None:
+            self.driver = get_driver()
 
-    def get_body(self, url) -> str:
-        self.driver.get(url)
-        body = self.driver.page_source
-        
-        return body
-    
-# TODO: apply
-# import os
-# import sys
-# import asyncio
-# from selenium import webdriver
-# from selenium.webdriver.chrome.service import Service
+    def stop_driver(self):
+        if self.driver is not None:
+            self.driver.quit()
+            self.driver = None
 
-# def get_driver():
-#     driver_dir_path = os.path.abspath("driver")
-#     check_driver(driver_dir_path)
+    async def reset_timer(self):
+        if self.timer is not None:
+            self.timer.cancel()
+        self.timer = asyncio.get_event_loop().call_later(self.timeout, self.stop_driver)
 
-#     driver_abs_path = os.path.join(driver_dir_path, "chromedriver")
-#     if sys.platform.startswith('win32'):
-#         driver_abs_path += ".exe" 
-
-#     s = Service(driver_abs_path)
-#     driver = webdriver.Chrome(service=s, options=options)
-#     return driver
-
-# class ChromeScrapper:
-#     def __init__(self, timeout=300):
-#         self.driver = None
-#         self.timeout = timeout
-#         self.timer = None
-#         self.lock = asyncio.Lock()
-
-#     async def start_driver(self):
-#         async with self.lock:
-#             if self.driver is None:
-#                 self.driver = get_driver()
-#             await self.reset_timer()
-
-#     async def stop_driver(self):
-#         async with self.lock:
-#             if self.driver is not None:
-#                 self.driver.quit()
-#                 self.driver = None
-
-#     async def reset_timer(self):
-#         if self.timer is not None:
-#             self.timer.cancel()
-#         self.timer = asyncio.get_event_loop().call_later(self.timeout, asyncio.create_task, self.stop_driver())
-
-#     async def get_body(self, url) -> str:
-#         await self.start_driver()
-#         self.driver.get(url)
-#         body = self.driver.page_source
-#         await self.reset_timer()
-#         return body
+    async def get_body(self, url) -> str:
+        async with self.lock:
+            await self.start_driver()
+            self.driver.get(url)
+            body = self.driver.page_source
+            await self.reset_timer()
+            return body

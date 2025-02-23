@@ -94,6 +94,6 @@ async def get_saved_static_file(static_id):
     static = await static_collection.find_one({"_id": ObjectId(static_id)})
     # return static['file']
     if not static:
-        return {"error": "Not found"}
+        return Response("Not found", status_code=404)
 
     return StreamingResponse(content=io.BytesIO(static['file']), media_type=static["media_type"])
