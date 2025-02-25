@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Pages Saver</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        .loading {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Web Pages Saver</h1>
+    <form id="scrapeForm">
+        <label for="url">Enter URL to scrape:</label>
+        <input type="url" id="url" name="url" required>
+        <button type="submit">Scrape</button>
+        <span class="loading">Loading...</span>
+    </form>
+    <ul id="pagesList"></ul>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const form = document.getElementById('scrapeForm');
+            const urlInput = document.getElementById('url');
+            const loadingIcon = document.querySelector('.loading');
+            const pagesList = document.getElementById('pagesList');
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                loadingIcon.style.display = 'inline';
+                try {
+                    const response = await fetch('/pages/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ url: urlInput.value })
+                    });
+                    if (response.ok) {
+                        const newPage = await response.json();
+                        addPageToList(newPage);
+                    } else {
+                        alert('Error: Unable to scrape the page.');
+                    }
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                } finally {
+                    loadingIcon.style.display = 'none';
+                }
+            });
+
+            async function fetchPages() {
+                const response = await fetch('/pages/');
+                const data = await response.json();
+                data.pages.forEach(page => addPageToList(page));
+            }
+
+            function addPageToList(page) {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = `/pages/${page.id}`;
+                a.textContent = page.url;
+                a.target = '_blank';
+                li.appendChild(a);
+                const title = document.createElement('li')
+                title.innerHTML = page.title;
+                li.appendChild(title);
+                pagesList.appendChild(li);
+            }
+
+            await fetchPages();
+        });
+    </script>
+</body>
+</html></form></html>
