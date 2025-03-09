@@ -41,7 +41,7 @@ def download_latest_version(version_number, download_url, driver_directory):
     os.remove(latest_driver_zip)
     return
 
-
+# TODO: download lesser version of driver compatible for current Chrome, if available
 def check_driver(driver_directory):
     """Check local chromedriver version and compare it with latest available version online.
     :param driver_directory: Directory to store chromedriver executable.

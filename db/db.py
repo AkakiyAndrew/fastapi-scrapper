@@ -4,6 +4,7 @@ from . import page_collection, static_collection
 async def save_page(
     url: str,
     body: str,
+    page_screenshot: bytes,
     title: str,
     statics: list):
     """
@@ -14,7 +15,8 @@ async def save_page(
         "url": url,
         "title": title,
         "body": body,
-        "statics": [static for static in statics]
+        "statics": [static for static in statics],
+        "preview": page_screenshot,
     }
     new_page = await page_collection.insert_one(page)
     return new_page.inserted_id

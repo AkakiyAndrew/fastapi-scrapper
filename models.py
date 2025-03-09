@@ -16,7 +16,7 @@ PyObjectId = Annotated[str, BeforeValidator(str)]
 
 class PageScrapeRequest(BaseModel):
     """
-    Request model for scraping a page.
+    Request for scraping a page.
     """
 
     url: str = Field(..., description="The URL of the page to scrape.")
@@ -46,7 +46,7 @@ class PageScrapeRequest(BaseModel):
 
 class Page(BaseModel):
     """
-    Single saved page (body only)
+    Single saved page
     """
 
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
@@ -54,24 +54,19 @@ class Page(BaseModel):
     body: Optional[str] = None
     save_time: Optional[NaiveDatetime] = None
     title: Optional[str] = None
+    preview: bytes
+    statics: List[PyObjectId]
 
     model_config = ConfigDict(
         populate_by_name=True,
         json_encoders={ObjectId: str},
         # arbitrary_types_allowed=True,
-        json_schema_extra={
-            "example": {
-                "url": "https://example.com/home",
-                "body": "<!DOCTYPE html><html><head></head><body>Hello, World!</body></html>",
-                "save_time": "2032-04-23T10:20:30.400",
-            }
-        },
     )
 
 
 class PageCollection(BaseModel):
     """
-    A container holding a list of `Page` ID's, without content.
+    A container holding a list of `Page`s.
 
     """
     pages: List[Page]

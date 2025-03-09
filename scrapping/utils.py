@@ -24,11 +24,13 @@ def get_resource_type(url):
         return "other"
 
 def get_url_domain(url):
-    parsed_url = urlparse(url)
-    return parsed_url.netloc
+    return urlparse(url).netloc
 
 def strip_url(url):
     return url.split('?')[0].split('#')[0]
+
+def get_url_fragment(url):
+    return urlparse(url).fragment
 
 def prepare_url(url, domain):
     if not url.startswith('http'):

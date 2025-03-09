@@ -32,6 +32,7 @@ async def list_pages():
     The response is unpaginated and limited to 50 results.
     """
 
+    # TODO: return with pagination
     return PageCollection(pages=await page_collection.find().to_list(100))
 
 @app.post(

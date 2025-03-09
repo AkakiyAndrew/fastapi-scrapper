@@ -35,6 +35,8 @@ def get_driver():
     return driver
 
 # Selenium-based scrapper, to be used for scrapping pages
+# TODO: get rid of async, just use sync lock? (no need for single async scrapper)
+# or add more driver instances, using ChromeScrapper as balancer/work queue?
 class ChromeScrapper:
     def __init__(self, timeout=30):
         self.driver = None
@@ -62,5 +64,6 @@ class ChromeScrapper:
             await self.start_driver()
             self.driver.get(url)
             body = self.driver.page_source
+            page_screenshot = self.driver.get_screenshot_as_png()
             await self.reset_timer()
-            return body
+            return body, page_screenshot
