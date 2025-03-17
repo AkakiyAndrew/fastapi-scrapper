@@ -6,24 +6,23 @@ import scrapping.utils as utils
 import scrapping.scrapping as scrapping
 
 from fastapi import FastAPI, status, Body, Response
-from fastapi.responses import HTMLResponse, FileResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from bson import ObjectId
 
-from models import Page, PageCollection, PageScrapeRequest
-from db import page_collection, static_collection
+from models import PageVersion, DomainRepresentation, PageScrapeRequest
+from db import pages_collection, static_collection, domain_collection
 
 app = FastAPI(
     title="Web Pages Saver API",
-    summary="A sample application showing how to use FastAPI to add a ReST API to a MongoDB collection.",
+    # summary="A simple application showing how to use FastAPI to add a ReST API to a MongoDB collection.",
 )
 
 @app.get(
     "/pages/",
     response_description="List all pages",
-    response_model=PageCollection,
+    response_model=DomainRepresentation,
     response_model_by_alias=False,
-    response_model_exclude={"pages": {"body"}},
 )
 async def list_pages():
     """
@@ -33,15 +32,14 @@ async def list_pages():
     """
 
     # TODO: return with pagination
-    return PageCollection(pages=await page_collection.find().to_list(100))
+    domains = DomainRepresentation(saved_domains=await domain_collection.find().to_list(100))
+    return domains
 
 @app.post(
     "/pages/",
     
     response_description="Add new page",
-    response_model=Page,
     status_code=status.HTTP_201_CREATED,
-    response_model_by_alias=False,
 )
 async def create_page(page: PageScrapeRequest = Body(...)):
     """
@@ -50,14 +48,9 @@ async def create_page(page: PageScrapeRequest = Body(...)):
     A unique `id` will be created and provided in the response.
     """
 
-    # page = {}
-
-    # if page.save_time is None:
-    #     page.save_time = datetime.datetime.now().astimezone()
-
     created_page_id = await scrapping.scrape_page(page.url, page.body)
     
-    return await page_collection.find_one({"_id": created_page_id})
+    return str(created_page_id)
 
 
 @app.get(
@@ -69,7 +62,7 @@ async def get_saved_page(page_id):
     """
     Returns saved page body from database.
     """
-    page = await page_collection.find_one({"_id": ObjectId(page_id)})
+    page = await pages_collection.find_one({"_id": ObjectId(page_id)})
     return page['body']
 
 
@@ -89,5 +82,8 @@ async def get_saved_static_file(static_id):
 
     return StreamingResponse(content=io.BytesIO(static['file']), media_type=static["media_type"])
 
+
+# TODO: page deletions (by page id, delete page body, remove from domain's entry)
+# TODO: and reduce statics counter, maybe delete it
 
 app.mount("/", StaticFiles(directory="static", html=True), name="static") # serve static files

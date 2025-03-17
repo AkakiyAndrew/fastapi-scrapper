@@ -7,18 +7,16 @@ from scrapping.utils import get_url_domain, get_resource_type, get_url_fragment,
 from db.db import save_page, save_static
 from . import scrapper
 from .chrome_scrapper import HEADLESS_HEADERS
-# from ..models import Page
 
-# TODO:
-# сделать функцию для сохранения страницы в БД по URL - скраппинг body/statics, возможно рекурсивно
-# сделать вторую функцию, которая принимает готовый body и тянет статику, без проверок URL (ручное сохранение одной странички)
+
 def get_static(url: str) -> requests.Response:
     """
     Get static by url
     """
     return requests.get(url, headers=HEADLESS_HEADERS)
 
-
+# TODO: add optional usage of user-provided cookies 
+# TODO: add args for recursive scrapping ('max_depth', which reduces each level) and use 'scrapped_pages' for that
 async def scrape_page(
     page_url: str,
     body: str=None,

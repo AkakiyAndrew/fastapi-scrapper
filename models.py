@@ -2,9 +2,7 @@ import datetime
 from typing import Optional, List
 from typing_extensions import Annotated
 
-from fastapi import FastAPI, Body, HTTPException, status
-from fastapi.responses import Response
-from pydantic import ConfigDict, BaseModel, Field, NaiveDatetime
+from pydantic import ConfigDict, BaseModel, Field, AwareDatetime
 from pydantic.functional_validators import BeforeValidator
 
 from bson import ObjectId
@@ -44,29 +42,70 @@ class PageScrapeRequest(BaseModel):
         },
     )
 
-class Page(BaseModel):
-    """
-    Single saved page
-    """
 
+class PageBody(BaseModel):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
-    url: str = Field(...)
-    body: Optional[str] = None
-    save_time: Optional[NaiveDatetime] = None
-    title: Optional[str] = None
-    preview: bytes
-    statics: List[PyObjectId]
+    body: str
 
     model_config = ConfigDict(
         populate_by_name=True,
         json_encoders={ObjectId: str},
-        # arbitrary_types_allowed=True,
     )
 
 
-class PageCollection(BaseModel):
+class PageVersionStaticless(BaseModel):
     """
-    A container holding a list of `Page`s.
+    Single version of saved page
+    """
 
+    page_body: PyObjectId
+    save_time: datetime # TODO: MongoDB hates this??
+    title: str
+    preview: PyObjectId
+    
+    model_config = ConfigDict(
+        json_encoders={ObjectId: str},
+        arbitrary_types_allowed=True,
+    )
+
+
+class PageVersion(PageVersionStaticless):
+    statics: List[PyObjectId]
+
+
+class Page(BaseModel):
     """
+    Page versions holder
+    """
+    url: str
+    versions: List[PageVersion]
+
+
+class Domain(BaseModel):
+    """
+    URL Domain, holds scrapped pages and their versions
+    """
+
+    domain: str
     pages: List[Page]
+
+class SavedStatic(BaseModel):
+    url: str
+    file: bytes
+    media_type: str
+    hash: str
+    usage_count: int
+
+
+# response classes
+
+class PageStaticless(Page):
+    versions: List[PageVersionStaticless]
+
+
+class DomainStaticLess(Domain):
+    pages: List[PageStaticless]
+
+
+class DomainRepresentation(BaseModel):
+    saved_domains: List[DomainStaticLess]
