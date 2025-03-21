@@ -40,9 +40,9 @@ def get_driver():
 
 # TODO: add optional usage of user-provided cookies 
 class ChromeScrapper:
-    def __init__(self, timeout=30):
+    def __init__(self, quit_timeout=30):
         self.driver = None
-        self.timeout = timeout
+        self.quit_timeout = quit_timeout
         self.timer = None
         self.lock = asyncio.Lock()
 
@@ -59,7 +59,7 @@ class ChromeScrapper:
     async def reset_timer(self):
         if self.timer is not None:
             self.timer.cancel()
-        self.timer = asyncio.get_event_loop().call_later(self.timeout, self.stop_driver)
+        self.timer = asyncio.get_event_loop().call_later(self.quit_timeout, self.stop_driver)
 
     async def get_body(self, url) -> str:
         async with self.lock:

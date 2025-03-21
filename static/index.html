@@ -65,27 +65,114 @@
                 }
             });
 
-            async function fetchPages() {
-                const response = await fetch('/pages/');
-                const data = await response.json();
-                data.pages.forEach(page => addPageToList(page));
+            async function fetchDomains() {
+                try {
+                    const response = await fetch('/pages/');
+                    if (response.ok) {
+                        const data = await response.json();
+                        data.saved_domains.forEach(domain => {
+                            
+                            // "saved_domains": [
+                            //     {
+                            //     "domain": "fastapi.tiangolo.com",
+                            //     "pages": [
+                            //         {
+                            //         "url": "/tutorial/query-params/",
+                            //         "versions": [
+                            //             {
+                            //             "page_body": "67d842312b5fa11ba962f2be",
+                            //             "save_time": "2025-03-17T15:39:32.962000",
+                            //             "title": "Query Parameters - FastAPI",
+                            //             "preview": "67d84127574d15c2781203d6"
+                            //             }
+                            //          }
+                            //      ]
+                            //     }
+                            // ]
+                            // }
+                            
+                            // domain list:
+                            // <ul>
+                            //     <li> *toggle-able*
+                            //         <h2>Domain base URL</h2>
+                            //         <ul>
+                            //             <li>
+                            //                  <a href="page_full_url">page short url</a>
+                            //                  <ul>
+                            //                      <li> <a href="page_full_url">page short url</a> </li>
+                            //             
+                            //             </li>
+                            //         </ul>
+                            //     </li>
+                            // </ul>
+                            
+                            const domainItem = document.createElement('li');
+                            const domainTitle = document.createElement('h2');
+                            domainTitle.textContent = domain.domain;
+                            domainItem.appendChild(domainTitle);
+
+                            const domainPagesList = document.createElement('ul');
+                            domain.pages.forEach(page => {
+                                const pageItem = document.createElement('li');
+                                const pageLink = document.createElement('a');
+                                const pageVersions = document.createElement('ul');
+                                pageLink.href = `https://${domain.domain}/${page.url}`;
+                                pageLink.textContent = `Original URL: https://${domain.domain}/${page.url}` ;
+                                page.versions.forEach(version => {
+                                    const versionItem = document.createElement('li');
+                                    const versionLink = document.createElement('a');
+                                    versionItem.style.paddingLeft = "20px";
+                                    versionLink.href = `/pages/${version.page_body}`;
+                                    versionLink.textContent = version.title;
+                                    versionItem.appendChild(versionLink);
+                                    pageVersions.appendChild(versionItem);
+                                });
+                                pageItem.style.paddingLeft = "20px";
+                                pageItem.appendChild(pageLink);
+                                pageItem.appendChild(pageVersions);
+                                domainPagesList.appendChild(pageItem);
+                            });
+                            domainItem.appendChild(domainPagesList);
+                            // domainPagesList.style.display = 'none';
+                            // domainTitle.addEventListener('click', () => {
+                            //     domainPagesList.style.display = domainPagesList.style.display === 'none' ? 'block' : 'none';
+                            // });
+                            // domainPagesList.style.display = 'none';
+                            domainPagesList.style.listStyleType = 'circle';
+                            domainPagesList.style.marginLeft = '20px';
+                            domainPagesList.style.marginTop = '10px';
+                            domainPagesList.style.marginBottom = '10px';
+                            domainPagesList.style.padding = '0';
+                            domainPagesList.style.border = '1px solid #ccc';
+                            domainPagesList.style.borderRadius = '5px';
+                            domainPagesList.style.backgroundColor = '#f8f8f8';
+                            domainPagesList.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+                            domainPagesList.style.transition = 'all 0.3s ease';
+                            domainPagesList.style.overflow = 'hidden';
+                            domainPagesList.style.maxHeight = '500px';
+                            domainPagesList.style.overflowY = 'auto';
+                            domainPagesList.style.padding = '10px';
+
+                            pagesList.appendChild(domainPagesList)
+                        });
+                    }
+                }catch (error) {
+                    alert('Error: ' + error.message);
+                } finally {
+                    loadingIcon.style.display = 'none';
+                }
             }
 
-            function addPageToList(page) {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = `/pages/${page.id}`;
-                a.textContent = page.url;
-                a.target = '_blank';
-                li.appendChild(a);
-                const title = document.createElement('li')
-                title.innerHTML = page.title;
-                li.appendChild(title);
-                pagesList.appendChild(li);
-            }
+            const reloadButton = document.createElement('button');
+            reloadButton.textContent = 'Reload';
+            reloadButton.addEventListener('click', async () => {
+                pagesList.innerHTML = '';
+                await fetchDomains();
+            });
+            form.parentNode.insertBefore(reloadButton, form.nextSibling);
 
-            await fetchPages();
+            await fetchDomains();
         });
     </script>
 </body>
-</html></form></html>
+</html>
