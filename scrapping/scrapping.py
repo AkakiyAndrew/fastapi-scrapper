@@ -1,6 +1,5 @@
 from bs4 import BeautifulSoup
 import requests
-# from typing import Union
 import logging
 
 from scrapping.utils import get_url_domain, get_resource_type, get_url_fragment, prepare_url, strip_url
@@ -95,12 +94,13 @@ async def scrape_page(
             new_page_id = await scrape_page(tag_url, None, recursive, statics_from_other_domains, scrapped_pages)
             tag[key] = f'/pages/{new_page_id}'
 
-    # save the page
     title = soup.find('title')
     if title:
         title = title.text or 'No title'
     else:
         title = 'No title'
+        
+    # save page content from changed soup
     page_body = soup.prettify()
     return await save_page(page_url, page_body, page_screenshot, title, statics)
 

@@ -1,8 +1,4 @@
 import io
-import datetime
-from typing import Union
-import pathlib
-import scrapping.utils as utils
 import scrapping.scrapping as scrapping
 
 from fastapi import FastAPI, status, Body, Response
@@ -10,12 +6,12 @@ from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from bson import ObjectId
 
-from models import PageVersion, DomainRepresentation, PageScrapeRequest
+from models import DomainRepresentation, PageScrapeRequest
 from db import pages_collection, static_collection, domain_collection
 
 app = FastAPI(
     title="Web Pages Saver API",
-    # summary="A simple application showing how to use FastAPI to add a ReST API to a MongoDB collection.",
+    summary="A simple scrapping app for saving and viewing web pages, on FastAPI & MongoDB.",
 )
 
 @app.get(
@@ -31,7 +27,7 @@ async def list_pages():
     The response is unpaginated and limited to 50 results.
     """
 
-    # TODO: return with pagination
+    # TODO: make proper pagination, with, like, ~5 page versions per page
     domains = DomainRepresentation(saved_domains=await domain_collection.find().to_list(100))
     return domains
 
@@ -69,7 +65,6 @@ async def get_saved_page(page_id):
 @app.get(
     "/statics/{static_id}",
     response_description="Get static file",
-    # response_class=FileResponse,
 )
 async def get_saved_static_file(static_id):
     """
