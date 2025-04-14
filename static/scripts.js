@@ -92,22 +92,27 @@ async function startUp() {
                         
                         page.versions.forEach(version => {
                             const versionItem = document.createElement('div');
-                            const versionLink = document.createElement('a');
                             const versionPreview = document.createElement('img');
-                            // const versionTimestamp = document.createElement('b');
+                            const versionTextStuff = document.createElement('div');
+                            const versionLink = document.createElement('a');
+                            const versionTimestamp = document.createElement('p');
 
-                            // TODO: add time of scrapping
+                            versionTextStuff.appendChild(versionLink);
+                            versionTextStuff.appendChild(versionTimestamp);
+                            versionItem.appendChild(versionTextStuff);
+                            versionItem.appendChild(versionPreview);
+                            pageVersions.appendChild(versionItem);
+
+                            // timestamp to readable date
+                            const readableDate = new Date(version.save_time).toLocaleString();
+                            versionTimestamp.textContent = `Page version from: ${readableDate}` ;
                             // TODO: add vertical scrolling (max height)??
                             
-                            versionItem.className = "page-component";
+                            versionTextStuff.className = "version-components"
+                            versionItem.className = "version-ui";
                             versionLink.href = `/pages/${version.page_body}`;
                             versionLink.textContent = version.title;
                             versionPreview.src = `/statics/${version.preview}`;
-
-                            versionItem.appendChild(versionLink);
-                            versionItem.appendChild(versionPreview);
-
-                            pageVersions.appendChild(versionItem);
                         });
                         // pageItem.style.paddingLeft = "20px";
                         pageItem.appendChild(pageLink);

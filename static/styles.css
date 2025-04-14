@@ -17,17 +17,27 @@ li {
 }
 
 
-.page-component a,
-.page-component img{
-    width:40%;
-    height:200px;
-    float:left;
-    display:inline-block;
-    margin:5px;
+.version-ui div,
+.version-ui img{
+  width:40%;
+  height:200px;
+  float:left;
+  display:inline-block;
+  margin:5px;
 }
 
-.page-component a {
+.version-ui div {
   background: lightgrey;
+}
+
+.version-components a,
+.version-components p{
+  margin-top: 40px;
+  margin-left: 40px;
+}
+
+.version-components div{
+  padding-top: 20px;
 }
 
 .domain-list div {
